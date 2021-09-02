@@ -1,4 +1,6 @@
 const inquirer = require('inquirer');
+const mysql = require('mysql2');
+const cTable = require('console.table');
 
 const MENU_QUESTION = [ 
   {
@@ -9,12 +11,52 @@ const MENU_QUESTION = [
   }
 ];
 
+// Connect to database
+const db = mysql.createConnection(
+  {
+    host: 'localhost',
+    // MySQL username,
+    user: 'root',
+    // MySQL password
+    password: '',
+    database: 'employee_db'
+  },
+  console.log(`Connected to the classlist_db database.`)
+);
+
+let p = new Promise((resolve, reject) => {
+  
+  db.query('SELECT * FROM department', function (err, results) {
+    resolve(results);
+    reject(err);
+  });
+})
+
+
+
+function determineNextAction(option) {
+  switch(option.userSelection) {
+    case 'View all departments': 
+      console.log(`validOption ${option.userSelection}`);
+      p.then((message) => {
+        console.table(message);
+        askQuestions();
+      })
+      break;
+    
+
+    default: 
+      askQuestions();
+  }
+}
+
 function askQuestions() {
   console.log('What would you like to do');
   inquirer
   .prompt(MENU_QUESTION)
   .then((response) => {
-    console.log(response);
+    //console.log(response);
+    determineNextAction(response);
   })
 }
 
@@ -22,7 +64,8 @@ askQuestions();
 
 
 /* WIP
-
+WHEN I choose to view all departments
+THEN I am presented with a formatted table showing department names and department ids
 */
 
 /*DONE
@@ -32,8 +75,7 @@ THEN I am presented with the following options: view all departments, view all r
 */
 
 /*NOT YET STARTED
-WHEN I choose to view all departments
-THEN I am presented with a formatted table showing department names and department ids
+
 WHEN I choose to view all roles
 THEN I am presented with the job title, role id, the department that role belongs to, and the salary for that role
 WHEN I choose to view all employees
