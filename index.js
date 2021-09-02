@@ -50,10 +50,23 @@ function determineNextAction(option) {
       .then((message) => {
         console.table(message);
         askQuestions();
-      })
+      });
       break;
-    
-
+    case 'View all employees': 
+      console.log(`VIEW ALL EMPLOYEES`) 
+      let dbString = `SELECT employee.id, employee.first_name AS "First Name", employee.last_name AS "Last Name",
+      roles.title AS "Job Title", department.name, 
+      concat(e2.first_name, ' ', e2.last_name) AS Manager
+      FROM employee
+      JOIN roles ON employee.role_id = roles.id
+      JOIN department ON roles.department_id = department.id
+      LEFT JOIN employee as e2 on employee.id = e2.manager_id ;`   
+      queryDB(dbString)
+      .then((message) => {
+        console.table(message);
+        askQuestions();
+      });
+      break;
     default: 
       console.log("invalid option!!");
   }
@@ -73,11 +86,14 @@ askQuestions();
 
 
 /* WIP
-WHEN I choose to view all roles
-THEN I am presented with the job title, role id, the department that role belongs to, and the salary for that role
+WHEN I choose to view all employees
+THEN I am presented with a formatted table showing employee data, including employee ids, first names, last names, job titles, departments, salaries, and managers that the employees report to
 */
 
 /*DONE
+WHEN I choose to view all roles
+THEN I am presented with the job title, role id, the department that role belongs to, and the salary for that role
+
 WHEN I choose to view all departments
 THEN I am presented with a formatted table showing department names and department ids
 
@@ -89,8 +105,7 @@ THEN I am presented with the following options: view all departments, view all r
 /*NOT YET STARTED
 
 
-WHEN I choose to view all employees
-THEN I am presented with a formatted table showing employee data, including employee ids, first names, last names, job titles, departments, salaries, and managers that the employees report to
+
 WHEN I choose to add a department
 THEN I am prompted to enter the name of the department and that department is added to the database
 WHEN I choose to add a role

@@ -15,10 +15,10 @@ VALUES ("Engineer1", "100000", 3),
         ("pm", "55000", 4);
 
 INSERT INTO employee (first_name, last_name, role_id, manager_id)
-VALUES ("Engineer" , "TWO", 2, NULL), 
+VALUES ("Engineer" , "TWO", 2, NULL ), 
         ("Eng", "one", 1, 1),
-        ("Tech", "one", 3, NULL), 
-        ("Recruiter", "one", 4, NULL), 
-        ("PM", "PM", 5, NULL);
+        ("Tech", "one", 3, null ), 
+        ("Recruiter", "one", 4, null), 
+        ("PM", "PM", 5, null );
 
 
