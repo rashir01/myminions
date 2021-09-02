@@ -67,6 +67,22 @@ function determineNextAction(option) {
         askQuestions();
       });
       break;
+    case 'Add a department':
+      inquirer.prompt([
+        {
+          type: 'input',
+          message: "Enter department name",
+          name: "deptName",
+        }]
+      ).then((response) => {
+        let dbString = `INSERT INTO department (name) VALUES ("${response.deptName}")`;
+        queryDB(dbString)
+        .then((message) => {
+          console.table(message);
+          askQuestions();
+        });
+      });
+      break;
     default: 
       console.log("invalid option!!");
   }
@@ -86,11 +102,15 @@ askQuestions();
 
 
 /* WIP
-WHEN I choose to view all employees
-THEN I am presented with a formatted table showing employee data, including employee ids, first names, last names, job titles, departments, salaries, and managers that the employees report to
+  WHEN I choose to add a department
+  THEN I am prompted to enter the name of the department and that department is added to the database
 */
 
 /*DONE
+
+WHEN I choose to view all employees
+THEN I am presented with a formatted table showing employee data, including employee ids, first names, last names, job titles, departments, salaries, and managers that the employees report to
+
 WHEN I choose to view all roles
 THEN I am presented with the job title, role id, the department that role belongs to, and the salary for that role
 
@@ -106,8 +126,7 @@ THEN I am presented with the following options: view all departments, view all r
 
 
 
-WHEN I choose to add a department
-THEN I am prompted to enter the name of the department and that department is added to the database
+
 WHEN I choose to add a role
 THEN I am prompted to enter the name, salary, and department for the role and that role is added to the database
 WHEN I choose to add an employee
