@@ -24,13 +24,6 @@ const db = mysql.createConnection(
   console.log(`Connected to the classlist_db database.`)
 );
 
-// let p = new Promise((resolve, reject) => {
-  
-//   db.query('SELECT * FROM department', function (err, results) {
-//     resolve(results);
-//     reject(err);
-//   });
-// })
 
 let queryDB = function(queryString) {
   return new Promise ((resolve, reject) => {
@@ -41,13 +34,20 @@ let queryDB = function(queryString) {
   })
 }
 
-
-
 function determineNextAction(option) {
   switch(option.userSelection) {
     case 'View all departments': 
-      console.log(`validOption ${option.userSelection}`);
-      queryDB('SELECT * FROM department').then((message) => {
+      console.log(`You selected ${option.userSelection}`);
+      queryDB('SELECT * FROM department')
+      .then((message) => {
+        console.table(message);
+        askQuestions();
+      })
+      break;
+    case 'View all Roles':
+      console.log(`You selected ${option.userSelection}`);
+      queryDB('SELECT roles.id, title, salary, department.name AS department FROM roles JOIN department ON roles.department_id = department.id')
+      .then((message) => {
         console.table(message);
         askQuestions();
       })
@@ -55,7 +55,7 @@ function determineNextAction(option) {
     
 
     default: 
-      askQuestions();
+      console.log("invalid option!!");
   }
 }
 
@@ -73,11 +73,14 @@ askQuestions();
 
 
 /* WIP
-WHEN I choose to view all departments
-THEN I am presented with a formatted table showing department names and department ids
+WHEN I choose to view all roles
+THEN I am presented with the job title, role id, the department that role belongs to, and the salary for that role
 */
 
 /*DONE
+WHEN I choose to view all departments
+THEN I am presented with a formatted table showing department names and department ids
+
 GIVEN a command-line application that accepts user input
 WHEN I start the application
 THEN I am presented with the following options: view all departments, view all roles, view all employees, add a department, add a role, add an employee, and update an employee role
@@ -85,8 +88,7 @@ THEN I am presented with the following options: view all departments, view all r
 
 /*NOT YET STARTED
 
-WHEN I choose to view all roles
-THEN I am presented with the job title, role id, the department that role belongs to, and the salary for that role
+
 WHEN I choose to view all employees
 THEN I am presented with a formatted table showing employee data, including employee ids, first names, last names, job titles, departments, salaries, and managers that the employees report to
 WHEN I choose to add a department
