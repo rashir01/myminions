@@ -8,14 +8,15 @@ USE employee_db
 -- FROM roles
 -- JOIN department ON roles.department_id = department.id;
 
+SELECT id FROM department where name = 'Human Resources'
 
-SELECT employee.id, employee.first_name AS "First Name", employee.last_name AS "Last Name",
-  roles.title AS "Job Title", department.name, 
-  concat(e2.first_name, ' ', e2.last_name) AS Manager
-FROM employee
-JOIN roles ON employee.role_id = roles.id
-JOIN department ON roles.department_id = department.id
-LEFT JOIN employee as e2 on employee.id = e2.manager_id ;
+-- SELECT employee.id, employee.first_name AS "First Name", employee.last_name AS "Last Name",
+--   roles.title AS "Job Title", department.name, 
+--   concat(e2.first_name, ' ', e2.last_name) AS Manager
+-- FROM employee
+-- JOIN roles ON employee.role_id = roles.id
+-- JOIN department ON roles.department_id = department.id
+-- LEFT JOIN employee as e2 on employee.id = e2.manager_id ;
 
 -- select employee.first_name as Employee, concat(e2.first_name,' ' ,e2.last_name) as manager
 -- From employee

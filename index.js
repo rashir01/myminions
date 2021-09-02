@@ -2,12 +2,13 @@ const inquirer = require('inquirer');
 const mysql = require('mysql2');
 const cTable = require('console.table');
 
+const optionsArray = ['View all departments', 'View all Roles', 'View all employees', 'Add a department', 'Add a role', 'Add an Employee', 'Update and Employee Role', 'Exit'];
 const MENU_QUESTION = [ 
   {
     type: 'list', 
     message: 'What would you like to do?',
     name: 'userSelection', 
-    choices: ['View all departments', 'View all Roles', 'View all employees', 'Add a department', 'Add a role', 'Add an Employee', 'Update and Employee Role', 'Exit']
+    choices: optionsArray
   }
 ];
 
@@ -83,6 +84,66 @@ function determineNextAction(option) {
         });
       });
       break;
+    case 'Add a role': 
+      queryDB("SELECT name FROM department")
+      .then((rows) => {
+        let departments = [];
+        rows.forEach(row => {
+          //console.log(row.name)
+          departments.push(row.name);
+        });
+        let dept_question = [ 
+          {
+            type: 'input', 
+            message: 'what is the name of the role', 
+            name: 'roleName'
+          },
+          {
+            type: 'input', 
+            message: 'what ist he salary', 
+            name: 'roleSalary'
+          },
+          {
+            type: 'list', 
+            message: 'which department?',
+            name: 'deptSelection', 
+            choices: departments
+          }
+        ];
+
+        
+        inquirer
+        .prompt(dept_question)
+        .then((response) => {
+          let deptName = response.deptSelection;
+          let roleName = response.roleName;
+          //conver the salary to integer
+          let salary = response.roleSalary;
+          
+          
+          //get the department id given the name
+          queryDB(`SELECT id FROM department where name = "${deptName}"`)
+          .then((response) => {
+            let deptID = parseInt(response[0].id);
+            queryDB(`INSERT INTO roles (title, salary, department_id) 
+            VALUES ("${roleName}", "${salary}", ${deptID} )`)
+            .then((response) => {
+              console.log(response);
+              askQuestions();
+            })
+            
+          //insert the new role into the db
+            
+          })
+          
+
+        })
+        
+        //console.log(departments);
+        
+        
+      });
+      break;
     default: 
       console.log("invalid option!!");
   }
@@ -102,11 +163,14 @@ askQuestions();
 
 
 /* WIP
-  WHEN I choose to add a department
-  THEN I am prompted to enter the name of the department and that department is added to the database
+  WHEN I choose to add a role
+THEN I am prompted to enter the name, salary, and department for the role and that role is added to the database
 */
 
 /*DONE
+
+  WHEN I choose to add a department
+  THEN I am prompted to enter the name of the department and that department is added to the database
 
 WHEN I choose to view all employees
 THEN I am presented with a formatted table showing employee data, including employee ids, first names, last names, job titles, departments, salaries, and managers that the employees report to
@@ -127,8 +191,7 @@ THEN I am presented with the following options: view all departments, view all r
 
 
 
-WHEN I choose to add a role
-THEN I am prompted to enter the name, salary, and department for the role and that role is added to the database
+
 WHEN I choose to add an employee
 THEN I am prompted to enter the employee’s first name, last name, role, and manager, and that employee is added to the database
 WHEN I choose to update an employee role
