@@ -24,13 +24,22 @@ const db = mysql.createConnection(
   console.log(`Connected to the classlist_db database.`)
 );
 
-let p = new Promise((resolve, reject) => {
+// let p = new Promise((resolve, reject) => {
   
-  db.query('SELECT * FROM department', function (err, results) {
-    resolve(results);
-    reject(err);
-  });
-})
+//   db.query('SELECT * FROM department', function (err, results) {
+//     resolve(results);
+//     reject(err);
+//   });
+// })
+
+let queryDB = function(queryString) {
+  return new Promise ((resolve, reject) => {
+    db.query(queryString, function (err, results) {
+      resolve(results);
+      reject(err);
+    })
+  })
+}
 
 
 
@@ -38,7 +47,7 @@ function determineNextAction(option) {
   switch(option.userSelection) {
     case 'View all departments': 
       console.log(`validOption ${option.userSelection}`);
-      p.then((message) => {
+      queryDB('SELECT * FROM department').then((message) => {
         console.table(message);
         askQuestions();
       })
