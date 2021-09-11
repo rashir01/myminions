@@ -3,6 +3,7 @@ const mysql = require('mysql2');
 const cTable = require('console.table');
 
 const optionsArray = ['View all departments', 'View all Roles', 'View all employees', 'Add a department', 'Add a role', 'Add an Employee', 'Update and Employee Role', 'Exit'];
+
 const MENU_QUESTION = [ 
   {
     type: 'list', 
@@ -11,6 +12,30 @@ const MENU_QUESTION = [
     choices: optionsArray
   }
 ];
+
+const EMPLOYEE_QUESTION = [
+  {
+    type: 'input', 
+    message: 'First Name', 
+    name: 'firstName',
+  },
+  {
+    type: 'input',
+    message: 'Last Name', 
+    name: 'lastName' 
+  },
+  {
+    type: 'input', 
+    message: 'Select role', 
+    name: 'role',
+  }, 
+  {
+    type: 'input', 
+    message: 'Manager', 
+    name: 'manager'
+  }
+];
+
 
 // Connect to database
 const db = mysql.createConnection(
@@ -111,7 +136,6 @@ function determineNextAction(option) {
           }
         ];
 
-        
         inquirer
         .prompt(dept_question)
         .then((response) => {
@@ -119,7 +143,6 @@ function determineNextAction(option) {
           let roleName = response.roleName;
           //conver the salary to integer
           let salary = response.roleSalary;
-          
           
           //get the department id given the name
           queryDB(`SELECT id FROM department where name = "${deptName}"`)
@@ -130,22 +153,95 @@ function determineNextAction(option) {
             .then((response) => {
               console.log(response);
               askQuestions();
+            })           
+          })
+        })
+      });
+      break;
+    case 'Add an Employee':
+      console.log("add employee");
+      //ask for the employee data
+      
+
+          inquirer
+          .prompt(EMPLOYEE_QUESTION)
+          .then((response) => {
+            console.log(response.firstName + " " + response.lastName + " " + response.role + " " + response.manager);
+            //find manager id or null
+            //find role id or null
+            queryDB(`SELECT id FROM roles where title = "${response.role}"`)
+            .then((roleID) => {
+              let role_id = roleID[0].id;
+              let firstName =  response.manager.split(" ")[0] || "";
+              let lastName = response.manager.split(" ")[1] || "";
+              console.log(`first name ${firstName}, lastName ${lastName}`)
+              queryDB(`SELECT id FROM employee WHERE first_name = "${firstName}" AND last_name = "${lastName}"`)
+              .then((manager) => {
+                console.log("hello manager " + manager[0].id);
+                managerID = manager[0].id
+                //if (managerID) {
+                  queryDB(`INSERT INTO employee (first_name, last_name, role_id, manager_id)
+                  VALUES ("${response.firstName}" , "${response.lastName}", ${role_id}, ${managerID})`)
+                  //var sql = "INSERT INTO employees (id, name, age, city) VALUES ('1', 'Ajeet Kumar', '27', 'Allahabad')";  
+                  .then((resp) => {
+                    console.log("Employee added. ")
+                    console.log(resp)
+                    askQuestions();
+                  })
+                //} else {
+                }).catch((err) => {
+                  queryDB(`INSERT INTO employee (first_name, last_name, role_id, manager_id)
+                  VALUES ("${firstName}" , "${lastName}", ${role_id}, NULL ) `)
+                  .then(() => {
+                    console.log("Could not find manager ID. Added with null for manager id");
+                    askQuestions();
+                  })
+                }).finally(() => {
+                  
+                })
+                  
+                //}
+                
+                  
+                            
+            }).catch((err) => {
+              console.log("ERROR: invalid role");
+              askQuestions();
             })
             
-          //insert the new role into the db
-            
-          })
-          
-
-        })
+              
         
-        //console.log(departments);
+        
         
         
       });
-      break;
+      
+      // queryDB('SELECT role_name FROM roles')
+      // .then((rows) => {
+      //   rows.forEach(row => {
+      //     //console.log(row.name)
+      //     roleArray.push(row);
+      //   });
+      //   console.log(roleArray);
+      //   // inquirer
+      //   // .prompt(EMPLOYEE_QUESTION)
+      //   // .then((response) => {
+      //   //   let firstName = response.firstName;
+      //   //   let lastName = response.lastName;
+      //     //conver the salary to integer
+      //     //let role = response.role;
+      //     //let manager = response.manager;
+      //     //console.log(`${firstName} ${lastName} ${role} ${manager}`)
+          
+      //     //add employee to table
+      //     askQuestions();
+      //   //});
+      // })
+      
+      break; 
     default: 
       console.log("invalid option!!");
+      process.exit();
   }
 }
 
@@ -163,11 +259,13 @@ askQuestions();
 
 
 /* WIP
-  WHEN I choose to add a role
-THEN I am prompted to enter the name, salary, and department for the role and that role is added to the database
+ WHEN I choose to add an employee
+THEN I am prompted to enter the employee’s first name, last name, role, and manager, and that employee is added to the database
 */
 
 /*DONE
+ WHEN I choose to add a role
+THEN I am prompted to enter the name, salary, and department for the role and that role is added to the database
 
   WHEN I choose to add a department
   THEN I am prompted to enter the name of the department and that department is added to the database
