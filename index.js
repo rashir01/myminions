@@ -169,17 +169,14 @@ async function processPrompt(prompt) {
       ]
       //inquire with employee questions, roleNames, and employeeNames
       const employeeResponses = await inquirer.prompt(addEmployeeQuestions.concat(employeeAdditionalQuestions));
-      console.log(JSON.stringify(employeeResponses));
       //get manager id
       let managerID = "NULL";
       if (employeeResponses.manager != "None") {
         managerID = await getEmployeeIdFromFullName(employeeResponses.manager);
       } 
-      console.log(managerID);
       //get role id
       let roleID = await queryDB(`SELECT id FROM roles WHERE title = "${employeeResponses.employeeRole}"`);
       roleID = roleID[0].id;
-      console.log("role id " + roleID);
       //insert to db
       await queryDB(`INSERT INTO employee (first_name, last_name, role_id, manager_id)
                   VALUES ("${employeeResponses.firstName}" , "${employeeResponses.lastName}", ${roleID}, ${managerID})`)
