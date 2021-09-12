@@ -41,9 +41,12 @@ async function processPrompt(prompt) {
       const departmentResults = await queryDB('SELECT * FROM department');
       console.table(departmentResults);
       break;
+    case 'View all Roles':
+      const roleResults = await queryDB('SELECT roles.id, title, salary, department.name AS department FROM roles JOIN department ON roles.department_id = department.id')
+      console.table(roleResults);
+    break;
   }
   init();
-  
 }
 
 
@@ -197,22 +200,8 @@ async function init() {
 
 function determineNextAction(option) {
   switch(option.userSelection) {
-    case 'View all departments': 
-      console.log(`You selected ${option.userSelection}`);
-      queryDB('SELECT * FROM department')
-      .then((message) => {
-        console.table(message);
-        askQuestions();
-      })
-      break;
-    case 'View all Roles':
-      console.log(`You selected ${option.userSelection}`);
-      queryDB('SELECT roles.id, title, salary, department.name AS department FROM roles JOIN department ON roles.department_id = department.id')
-      .then((message) => {
-        console.table(message);
-        askQuestions();
-      });
-      break;
+
+    
     case 'View all employees': 
       console.log(`VIEW ALL EMPLOYEES`) 
       let dbString = `SELECT employee.id, employee.first_name AS "First Name", employee.last_name AS "Last Name",
