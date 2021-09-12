@@ -36,11 +36,21 @@ WHEN I choose to update an employee role
 THEN I am prompted to select an employee to update and their new role and this information is updated in the database 
 ```
 
-## DEMO
+## DEMOS
 
-The following videos show an example of the application being used from the command line:
+The following gifs show an example of the application being used from the command line:
 
-[![A video thumbnail shows the command-line employee management application with a play button overlaying the view.](./assets/12-sql-homework-video-thumbnail.png)](https://2u-20.wistia.com/medias/2lnle7xnpk)
+A demo showing intial menu and view action (view all departments, view all roles, view all employees, and exit)
+
+![Initial and View Demo](assets/menu_and_view_demo.gif)
+
+A demo showing add department and add role options
+
+![Add deparment and role](assets/add_dept_and_role_demo.gif)
+
+A demo shwoing add employee and update employee options
+
+![Add and update employee](assets/add_and_modify_emp_demo.gif)
 
 ## Getting Started
 
