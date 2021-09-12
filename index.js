@@ -2,7 +2,8 @@ const inquirer = require('inquirer');
 const mysql = require('mysql2');
 const cTable = require('console.table');
 
-const optionsArray = ['View all departments', 'View all Roles', 'View all employees', 'Add a department', 'Add a role', 'Add an Employee', 'Update and Employee Role', 'Exit'];
+//init choices
+const optionsArray = ['View all departments', 'View all Roles', 'View all employees', 'Add a department', 'Add a role', 'Add an Employee', 'Update Employee Role', 'Exit'];
 
 const MENU_QUESTION = [ 
   {
@@ -61,6 +62,7 @@ async function queryDB (queryString)  {
   })
 }
 
+//lists all the employees by "first_name last_name"
 async function viewAllEmployees() {
   let dbString = `SELECT employee.id, employee.first_name AS "First Name", employee.last_name AS "Last Name",
       roles.title AS "Job Title", department.name, 
@@ -93,11 +95,16 @@ async function getEmployeeNames() {
   return employeeNamesResult.map((a) => {return a.manager});
 }
 
-async function getManagerID(fullName) {
+async function getEmployeeIdFromFullName(fullName) {
   let firstName = fullName.split(" ")[0] || "";
   let lastName = fullName.split(" ")[1] || "";
-  let managerID = await queryDB(`SELECT id FROM employee WHERE first_name = "${firstName}" AND last_name = "${lastName}"`);
-  return managerID[0].id;
+  let employeeID = await queryDB(`SELECT id FROM employee WHERE first_name = "${firstName}" AND last_name = "${lastName}"`);
+  return employeeID[0].id;
+}
+
+async function getRoleIdFromRoleName(roleName) {
+  let roleID = await queryDB(`SELECT id FROM roles WHERE title = "${roleName}"`);
+  return roleID[0].id;
 }
 
 async function processPrompt(prompt) {
@@ -166,7 +173,7 @@ async function processPrompt(prompt) {
       //get manager id
       let managerID = "NULL";
       if (employeeResponses.manager != "None") {
-        managerID = await getManagerID(employeeResponses.manager);
+        managerID = await getEmployeeIdFromFullName(employeeResponses.manager);
       } 
       console.log(managerID);
       //get role id
@@ -179,6 +186,27 @@ async function processPrompt(prompt) {
       console.log(`${employeeResponses.firstName} ${employeeResponses.lastName} to the DB`);
       //insert into db
     break;
+    case 'Update Employee Role':
+      //show all the employees
+      let employeeList = await getEmployeeNames();
+      let selectedEmployee = await inquirer.prompt([{ type: 'list', message: "which employee do you want to edit", name: "empName", choices: employeeList}]);
+      console.log(selectedEmployee);
+      //get selected employee id
+      const employeeUpdateId = await getEmployeeIdFromFullName(selectedEmployee.empName);
+      //show all the roles
+      let rolesList = await getRoleNames();
+      let selectedRole = await inquirer.prompt([{ type: 'list', message: "which role do you want to assign", name: "roleName", choices: rolesList}]);
+      console.log(selectedRole);
+      //get selected role id
+      const updateRoleId = await getRoleIdFromRoleName(selectedRole.roleName);
+      console.log(employeeUpdateId + " " + updateRoleId);
+      //set the employee id to the role id
+      await queryDB(`UPDATE employee SET role_id = ${updateRoleId} WHERE id = ${employeeUpdateId};`)
+      console.log(`Updated employee ${selectedEmployee.empName}`);
+    break;
+    case 'Exit': 
+      console.log('Goodbye');
+      process.exit();
   }
   init();
 }
@@ -190,173 +218,3 @@ async function init() {
 }
 
 init();
-
-/*
-
-
-
-    
-   
-      
-
-          inquirer
-          .prompt(EMPLOYEE_QUESTION)
-          .then((response) => {
-            console.log(response.firstName + " " + response.lastName + " " + response.role + " " + response.manager);
-            //find manager id or null
-            //find role id or null
-            queryDB(`SELECT id FROM roles where title = "${response.role}"`)
-            .then((roleID) => {
-              let role_id = roleID[0].id;
-              let firstName =  response.manager.split(" ")[0] || "";
-              let lastName = response.manager.split(" ")[1] || "";
-              console.log(`first name ${firstName}, lastName ${lastName}`)
-              queryDB(`SELECT id FROM employee WHERE first_name = "${firstName}" AND last_name = "${lastName}"`)
-              .then((manager) => {
-                console.log("hello manager " + manager[0].id);
-                managerID = manager[0].id
-                //if (managerID) {
-                  queryDB(`INSERT INTO employee (first_name, last_name, role_id, manager_id)
-                  VALUES ("${response.firstName}" , "${response.lastName}", ${role_id}, ${managerID})`)
-                  //var sql = "INSERT INTO employees (id, name, age, city) VALUES ('1', 'Ajeet Kumar', '27', 'Allahabad')";  
-                  .then((resp) => {
-                    console.log("Employee added. ")
-                    console.log(resp)
-                    askQuestions();
-                  })
-                //todo select users from the db then display to select the manager!
-                }).catch((err) => {
-                  queryDB(`INSERT INTO employee (first_name, last_name, role_id, manager_id)
-                  VALUES ("${firstName}" , "${lastName}", ${role_id}, NULL ) `)
-                  .then(() => {
-                    console.log("Could not find manager ID. Added with null for manager id");
-                    askQuestions();
-                  })
-                }).finally(() => {
-                  
-                })
-                  
-                //}
-                
-                  
-                            
-            }).catch((err) => {
-              console.log("ERROR: invalid role");
-              askQuestions();
-            })
-            
-              
-        
-        
-        
-        
-      });
-      
-      // queryDB('SELECT role_name FROM roles')
-      // .then((rows) => {
-      //   rows.forEach(row => {
-      //     //console.log(row.name)
-      //     roleArray.push(row);
-      //   });
-      //   console.log(roleArray);
-      //   // inquirer
-      //   // .prompt(EMPLOYEE_QUESTION)
-      //   // .then((response) => {
-      //   //   let firstName = response.firstName;
-      //   //   let lastName = response.lastName;
-      //     //conver the salary to integer
-      //     //let role = response.role;
-      //     //let manager = response.manager;
-      //     //console.log(`${firstName} ${lastName} ${role} ${manager}`)
-          
-      //     //add employee to table
-      //     askQuestions();
-      //   //});
-      // })
-      
-      break; 
-    case 'Update and Employee Role':
-      //show all the employees
-      queryDB(`SELECT concat (first_name, ' ', last_name) as Employee FROM employee`)
-      .then((rows) => {
-        let employees = [];
-        rows.forEach(row => {
-          employees.push(row.Employee);
-        });
-        console.log(employees);
-        queryDB('select title from roles')
-        .then((rows) => {
-          let roles = [];
-
-          rows.forEach(row => {
-            roles.push(row.title);
-          })
-          console.log(roles);
-
-          let dept_question = [ 
-            {
-              type: 'list', 
-              message: 'which employee?',
-              name: 'employee', 
-              choices: employees
-            }, 
-            {
-              type: 'list', 
-              message: 'new role', 
-              name: 'role',
-              choices: roles
-            }
-          ];
-          inquirer
-          .prompt(dept_question)
-          .then((response) => {
-            console.log(response);
-
-            askQuestions();
-          })
-        })
-        //askQuestions();
-      })
-      .catch((err) => {
-        console.log(err);
-      })
-      //once the user selects an employee, show all the roles
-
-      //once the user selects a role, submit that to the db
-
-      break;
-
-    default: 
-      console.log("invalid option!!");
-      process.exit();
-  }
-}
-
- WIP
- WHEN I choose to update an employee role
-THEN I am prompted to select an employee to update and their new role and this information is updated in the database 
-
-DONE
-WHEN I choose to add an employee
-THEN I am prompted to enter the employee’s first name, last name, role, and manager, and that employee is added to the database
-
- WHEN I choose to add a role
-THEN I am prompted to enter the name, salary, and department for the role and that role is added to the database
-
-  WHEN I choose to add a department
-  THEN I am prompted to enter the name of the department and that department is added to the database
-
-WHEN I choose to view all employees
-THEN I am presented with a formatted table showing employee data, including employee ids, first names, last names, job titles, departments, salaries, and managers that the employees report to
-
-WHEN I choose to view all roles
-THEN I am presented with the job title, role id, the department that role belongs to, and the salary for that role
-
-WHEN I choose to view all departments
-THEN I am presented with a formatted table showing department names and department ids
-
-GIVEN a command-line application that accepts user input
-WHEN I start the application
-THEN I am presented with the following options: view all departments, view all roles, view all employees, add a department, add a role, add an employee, and update an employee role
-*/
-
