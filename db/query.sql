@@ -1,14 +1,14 @@
 USE employee_db
 
--- select * from employee;
+ select * from employee;
 -- select * from department;
--- select * from roles;
+-- select title from roles;
 
 -- SELECT roles.id, title, salary, department.name 
 -- FROM roles
 -- JOIN department ON roles.department_id = department.id;
 
-SELECT id FROM department where name = 'Human Resources'
+-- SELECT id FROM department where name = 'Human Resources'
 
 -- SELECT employee.id, employee.first_name AS "First Name", employee.last_name AS "Last Name",
 --   roles.title AS "Job Title", department.name, 

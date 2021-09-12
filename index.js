@@ -190,16 +190,13 @@ async function processPrompt(prompt) {
       //show all the employees
       let employeeList = await getEmployeeNames();
       let selectedEmployee = await inquirer.prompt([{ type: 'list', message: "which employee do you want to edit", name: "empName", choices: employeeList}]);
-      console.log(selectedEmployee);
       //get selected employee id
       const employeeUpdateId = await getEmployeeIdFromFullName(selectedEmployee.empName);
       //show all the roles
       let rolesList = await getRoleNames();
       let selectedRole = await inquirer.prompt([{ type: 'list', message: "which role do you want to assign", name: "roleName", choices: rolesList}]);
-      console.log(selectedRole);
       //get selected role id
       const updateRoleId = await getRoleIdFromRoleName(selectedRole.roleName);
-      console.log(employeeUpdateId + " " + updateRoleId);
       //set the employee id to the role id
       await queryDB(`UPDATE employee SET role_id = ${updateRoleId} WHERE id = ${employeeUpdateId};`)
       console.log(`Updated employee ${selectedEmployee.empName}`);
