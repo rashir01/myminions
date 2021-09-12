@@ -13,11 +13,44 @@ const MENU_QUESTION = [
   }
 ];
 
+// Connect to database
+const db = mysql.createConnection(
+  {
+    host: 'localhost',
+    // MySQL username,
+    user: 'root',
+    // MySQL password
+    password: '',
+    database: 'employee_db'
+  },
+  console.log(`Connected to the classlist_db database.`)
+);
+
+async function queryDB (queryString)  {
+  return new Promise ((resolve, reject) => {
+    db.query(queryString, function (err, results) {
+      resolve(results);
+      reject(err);
+    })
+  })
+}
+
+async function processPrompt(prompt) {
+  switch(prompt.userSelection) {
+    case 'View all departments': 
+      const departmentResults = await queryDB('SELECT * FROM department');
+      console.table(departmentResults);
+      break;
+  }
+  init();
+  
+}
+
+
 async function init() {
   console.log('What would you like to do');
-  await inquirer.prompt(MENU_QUESTION)
-  init();
-
+  const selection = await inquirer.prompt(MENU_QUESTION);
+  await processPrompt(selection);
 }
 
 init();
@@ -106,7 +139,6 @@ init();
 
 
 
-/*
 
 const EMPLOYEE_QUESTION = [
   {
@@ -413,13 +445,11 @@ function askQuestions() {
 
 askQuestions();
 
-
-/* WIP
+ WIP
  WHEN I choose to update an employee role
 THEN I am prompted to select an employee to update and their new role and this information is updated in the database 
-*/
 
-/*DONE
+DONE
 WHEN I choose to add an employee
 THEN I am prompted to enter the employee’s first name, last name, role, and manager, and that employee is added to the database
 
@@ -443,12 +473,3 @@ WHEN I start the application
 THEN I am presented with the following options: view all departments, view all roles, view all employees, add a department, add a role, add an employee, and update an employee role
 */
 
-/*NOT YET STARTED
-
-
-
-
-
-
-
-*/
