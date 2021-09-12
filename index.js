@@ -13,6 +13,19 @@ const MENU_QUESTION = [
   }
 ];
 
+let dept_question = [ 
+  {
+    type: 'input', 
+    message: 'what is the name of the role', 
+    name: 'roleName'
+  },
+  {
+    type: 'input', 
+    message: 'what ist he salary', 
+    name: 'roleSalary'
+  }
+];
+
 // Connect to database
 const db = mysql.createConnection(
   {
@@ -55,6 +68,30 @@ async function viewDepartments() {
   const departmentResults = await queryDB('SELECT * FROM department');
   console.table(departmentResults);
 }
+
+
+  function json2array(json,y){
+    let departments = [];
+    let x = "name";
+    console.log(Object.values(json));
+    json.forEach(row => {
+      //console.log(row)
+      //let currentValue = row.getString(x)
+      //departments.push(currentValue);
+    });
+    return departments;
+}
+  // let toReturn = [];
+  // result.forEach(element => {
+  //   toReturn.push(`${element.x}`);
+  // });
+  // return toReturn;
+
+async function getDepartmentNames() {
+  const deptNamesDBResult = await queryDB(`SELECT name FROM department`);
+  return  deptNamesDBResult.map((a) => {return a.name}); //this removes extra stuff that mysql adds and just returns the names
+}
+
 async function processPrompt(prompt) {
   switch(prompt.userSelection) {
     case 'View all departments': 
@@ -77,9 +114,44 @@ async function processPrompt(prompt) {
       await  queryDB(dbString);
       await viewDepartments();
     break;
+    case 'Add a role':
+      //get department names to prompt the user to choose the dept associated with the rol
+      let departmentNames = await getDepartmentNames();
+      const whichDepartment = [{
+        type: 'list', 
+        message: 'which department?',
+        name: "deptName",
+        choices: departmentNames
+      }]
+      //ask the user to enter role name, salary, and which department
+      const responses = await inquirer.prompt(dept_question.concat(whichDepartment));
+      //get the department id of the chosen department
+      let id = await queryDB(`SELECT id FROM department where name = "${responses.deptName}"`)
+      id = id[0].id;
+      await queryDB(`INSERT INTO roles (title, salary, department_id) 
+            VALUES ("${responses.roleName}", "${responses.roleSalary}", ${id} )`);
+    break;
+      //console.log(departmentNames);
   }
   init();
 }
+
+/*case 'Add a role': 
+      
+
+
+
+          
+          
+            
+            .then((response) => {
+              console.log(response);
+              askQuestions();
+            })           
+          })
+        })
+      });
+      break;*/
 
 
 async function init() {
@@ -236,55 +308,7 @@ function determineNextAction(option) {
     
     
 
-    case 'Add a role': 
-      queryDB("SELECT name FROM department")
-      .then((rows) => {
-        let departments = [];
-        rows.forEach(row => {
-          //console.log(row.name)
-          departments.push(row.name);
-        });
-        let dept_question = [ 
-          {
-            type: 'input', 
-            message: 'what is the name of the role', 
-            name: 'roleName'
-          },
-          {
-            type: 'input', 
-            message: 'what ist he salary', 
-            name: 'roleSalary'
-          },
-          {
-            type: 'list', 
-            message: 'which department?',
-            name: 'deptSelection', 
-            choices: departments
-          }
-        ];
-
-        inquirer
-        .prompt(dept_question)
-        .then((response) => {
-          let deptName = response.deptSelection;
-          let roleName = response.roleName;
-          //conver the salary to integer
-          let salary = response.roleSalary;
-          
-          //get the department id given the name
-          queryDB(`SELECT id FROM department where name = "${deptName}"`)
-          .then((response) => {
-            let deptID = parseInt(response[0].id);
-            queryDB(`INSERT INTO roles (title, salary, department_id) 
-            VALUES ("${roleName}", "${salary}", ${deptID} )`)
-            .then((response) => {
-              console.log(response);
-              askQuestions();
-            })           
-          })
-        })
-      });
-      break;
+    
     case 'Add an Employee':
       console.log("add employee");
       //ask for the employee data
