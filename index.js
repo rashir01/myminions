@@ -47,24 +47,36 @@ async function viewAllEmployees() {
     return employeeResults;
 }
 
+async function prompt(questions) {
+  const selection = await inquirer.prompt(MENU_QUESTION);
+}
+
+async function viewDepartments() {
+  const departmentResults = await queryDB('SELECT * FROM department');
+  console.table(departmentResults);
+}
 async function processPrompt(prompt) {
   switch(prompt.userSelection) {
     case 'View all departments': 
-      const departmentResults = await queryDB('SELECT * FROM department');
-      console.table(departmentResults);
-      break;
+      await viewDepartments();  
+    break;
     case 'View all Roles':
       const roleResults = await queryDB(
         `SELECT roles.id, title, salary, department.name AS department 
         FROM roles 
-        JOIN department ON roles.department_id = department.id`)
+        JOIN department ON roles.department_id = department.id`);
       console.table(roleResults);
     break;
     case 'View all employees': 
       const employeeResults = await viewAllEmployees();
       console.table(employeeResults);
-        
-      break;
+    break;
+    case 'Add a department':
+      const response = await inquirer.prompt([{ type: 'input', message: "Enter department name", name: "deptName"}]);
+      let dbString = `INSERT INTO department (name) VALUES ("${response.deptName}")`;
+      await  queryDB(dbString);
+      await viewDepartments();
+    break;
   }
   init();
 }
@@ -223,22 +235,7 @@ function determineNextAction(option) {
 
     
     
-    case 'Add a department':
-      inquirer.prompt([
-        {
-          type: 'input',
-          message: "Enter department name",
-          name: "deptName",
-        }]
-      ).then((response) => {
-        let dbString = `INSERT INTO department (name) VALUES ("${response.deptName}")`;
-        queryDB(dbString)
-        .then((message) => {
-          console.table(message);
-          askQuestions();
-        });
-      });
-      break;
+
     case 'Add a role': 
       queryDB("SELECT name FROM department")
       .then((rows) => {
