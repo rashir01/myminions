@@ -13,7 +13,7 @@ const MENU_QUESTION = [
   }
 ];
 
-let dept_question = [ 
+let addDepartmentQuestions = [ 
   {
     type: 'input', 
     message: 'what is the name of the role', 
@@ -23,6 +23,19 @@ let dept_question = [
     type: 'input', 
     message: 'what ist he salary', 
     name: 'roleSalary'
+  }
+];
+
+let addEmployeeQuestions = [
+  {
+    type: 'input', 
+    message: 'What is the employee first name?',
+    name: 'firstName'
+  },
+  {
+    type: 'input', 
+    message: 'What is the employee last name', 
+    name: 'lastName'
   }
 ];
 
@@ -60,36 +73,31 @@ async function viewAllEmployees() {
     return employeeResults;
 }
 
-async function prompt(questions) {
-  const selection = await inquirer.prompt(MENU_QUESTION);
-}
-
 async function viewDepartments() {
   const departmentResults = await queryDB('SELECT * FROM department');
   console.table(departmentResults);
 }
 
-
-  function json2array(json,y){
-    let departments = [];
-    let x = "name";
-    console.log(Object.values(json));
-    json.forEach(row => {
-      //console.log(row)
-      //let currentValue = row.getString(x)
-      //departments.push(currentValue);
-    });
-    return departments;
-}
-  // let toReturn = [];
-  // result.forEach(element => {
-  //   toReturn.push(`${element.x}`);
-  // });
-  // return toReturn;
-
 async function getDepartmentNames() {
   const deptNamesDBResult = await queryDB(`SELECT name FROM department`);
   return  deptNamesDBResult.map((a) => {return a.name}); //this removes extra stuff that mysql adds and just returns the names
+}
+
+async function getRoleNames() {
+  const roleNamesDBResult = await queryDB(`SELECT title FROM roles`);
+  return roleNamesDBResult.map((a) => {return a.title});
+}
+
+async function getEmployeeNames() {
+  const employeeNamesResult = await queryDB(`SELECT concat (first_name, ' ', last_name) AS manager FROM employee`);
+  return employeeNamesResult.map((a) => {return a.manager});
+}
+
+async function getManagerID(fullName) {
+  let firstName = fullName.split(" ")[0] || "";
+  let lastName = fullName.split(" ")[1] || "";
+  let managerID = await queryDB(`SELECT id FROM employee WHERE first_name = "${firstName}" AND last_name = "${lastName}"`);
+  return managerID[0].id;
 }
 
 async function processPrompt(prompt) {
@@ -124,35 +132,56 @@ async function processPrompt(prompt) {
         choices: departmentNames
       }]
       //ask the user to enter role name, salary, and which department
-      const responses = await inquirer.prompt(dept_question.concat(whichDepartment));
+      const roleResponses = await inquirer.prompt(addDepartmentQuestions.concat(whichDepartment));
       //get the department id of the chosen department
-      let id = await queryDB(`SELECT id FROM department where name = "${responses.deptName}"`)
-      id = id[0].id;
+      let departmentID = await queryDB(`SELECT id FROM department where name = "${roleResponses.deptName}"`);
+      departmentID = departmentID[0].id;
       await queryDB(`INSERT INTO roles (title, salary, department_id) 
-            VALUES ("${responses.roleName}", "${responses.roleSalary}", ${id} )`);
+            VALUES ("${roleResponses.roleName}", "${roleResponses.roleSalary}", ${departmentID} )`);
+      console.log(`Added role ${roleResponses.roleName}`);
     break;
-      //console.log(departmentNames);
+    case 'Add an Employee':
+      console.log("add employee");
+      //get roleNames and employeeNames from DB 
+      let roleNames = await getRoleNames();
+      let managerName = await getEmployeeNames();
+      managerName.push("None"); //allow manager to be none
+      const employeeAdditionalQuestions = [
+        {
+          type: 'list', 
+          message: 'What is the employee role?',
+          name: 'employeeRole',
+          choices: roleNames
+        }, 
+        {
+          type: 'list', 
+          message: 'Who is the employees manager?',
+          name: "manager",
+          choices: managerName
+        }
+      ]
+      //inquire with employee questions, roleNames, and employeeNames
+      const employeeResponses = await inquirer.prompt(addEmployeeQuestions.concat(employeeAdditionalQuestions));
+      console.log(JSON.stringify(employeeResponses));
+      //get manager id
+      let managerID = "NULL";
+      if (employeeResponses.manager != "None") {
+        managerID = await getManagerID(employeeResponses.manager);
+      } 
+      console.log(managerID);
+      //get role id
+      let roleID = await queryDB(`SELECT id FROM roles WHERE title = "${employeeResponses.employeeRole}"`);
+      roleID = roleID[0].id;
+      console.log("role id " + roleID);
+      //insert to db
+      await queryDB(`INSERT INTO employee (first_name, last_name, role_id, manager_id)
+                  VALUES ("${employeeResponses.firstName}" , "${employeeResponses.lastName}", ${roleID}, ${managerID})`)
+      console.log(`${employeeResponses.firstName} ${employeeResponses.lastName} to the DB`);
+      //insert into db
+    break;
   }
   init();
 }
-
-/*case 'Add a role': 
-      
-
-
-
-          
-          
-            
-            .then((response) => {
-              console.log(response);
-              askQuestions();
-            })           
-          })
-        })
-      });
-      break;*/
-
 
 async function init() {
   console.log('What would you like to do');
@@ -162,156 +191,12 @@ async function init() {
 
 init();
 
-
-
-
-
-
-
-
-
 /*
-const posts = [
-  { title: "post one", body: "this is post one"},
-  { title: "post two", body: "this is post two"}
-]
-
-function getPosts() {
-  setTimeout(() => {
-    let output = '';
-    posts.forEach((post) => {
-      output += `${post.title}\n`
-    });
-    console.log(output);
-  }, 1000);
-}
-
-function createPost(post) {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      posts.push(post);
-
-      const error = false;
-
-      if(!error) {
-        resolve();
-      } else {
-        reject ('Error: something went wrong');
-      }
-    },2000)
-  }) 
-}
-
-function creaatePost2(post) {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      posts.push(post);
-      const error = false; 
-      if (!error) {
-        resolve();
-      } else {
-        reject ('Error: something wrong in createpost2');
-      }
-    }, 4000)
-  })
-}
-
-//getPosts();
-
-// createPost({title: 'Post Three', body: "This is post three"})
-//   .then(getPosts)
-//   .catch(err => console.log(err));
-
-async function init() {
-  await creaatePost2({title: 'post four', body: 'this is post four'});
-  await createPost({title: 'Post Three', body: "This is post three"});
-  getPosts();
-}
-
-init();
 
 
-
-
-
-// const promise1 = new Promise((resolve, reject) => 
-//   setTimeout(resolve, 4000, 'promise1'));
-// const promise2 = new Promise((resolve, reject) => 
-//   setTimeout(resolve, 1, 'promise2'));
-// const promise3 = new Promise((resolve, reject) => 
-//   setTimeout(resolve, 1, 'promise3'));
-
-// Promise.all([promise1, promise2, promise3]).
-// then((values)=> {console.log(values)});
-
-
-
-
-const EMPLOYEE_QUESTION = [
-  {
-    type: 'input', 
-    message: 'First Name', 
-    name: 'firstName',
-  },
-  {
-    type: 'input',
-    message: 'Last Name', 
-    name: 'lastName' 
-  },
-  {
-    type: 'input', 
-    message: 'Select role', 
-    name: 'role',
-  }, 
-  {
-    type: 'input', 
-    message: 'Manager', 
-    name: 'manager'
-  }
-];
-
-
-// Connect to database
-const db = mysql.createConnection(
-  {
-    host: 'localhost',
-    // MySQL username,
-    user: 'root',
-    // MySQL password
-    password: '',
-    database: 'employee_db'
-  },
-  console.log(`Connected to the classlist_db database.`)
-);
-
-
-let queryDB = (queryString) => {
-  return new Promise ((resolve, reject) => {
-    db.query(queryString, function (err, results) {
-      resolve(results);
-      reject(err);
-    })
-  })
-}
-
-async function init() {
-  
-}
-
-
-
-
-
-function determineNextAction(option) {
-  switch(option.userSelection) {
 
     
-    
-
-    
-    case 'Add an Employee':
-      console.log("add employee");
-      //ask for the employee data
+   
       
 
           inquirer
@@ -446,20 +331,6 @@ function determineNextAction(option) {
       process.exit();
   }
 }
-
-function askQuestions() {
-  console.log('What would you like to do');
-  inquirer
-  .prompt(MENU_QUESTION)
-  .then((response) => {
-    //console.log(response);
-    //console.log(response);
-
-    determineNextAction(response);
-  })
-}
-
-askQuestions();
 
  WIP
  WHEN I choose to update an employee role
