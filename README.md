@@ -94,3 +94,7 @@ the schema contains the following three tables:
     * `manager_id`: `INT` to hold reference to another employee that is the manager of the current employee (`null` if the employee has no manager)
 
 
+## Questions
+[Github rashir01](https://github.com/rashir01)
+
+Email: ray.dev.seng@gmail.com
