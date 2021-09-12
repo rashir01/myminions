@@ -13,6 +13,101 @@ const MENU_QUESTION = [
   }
 ];
 
+async function init() {
+  console.log('What would you like to do');
+  await inquirer.prompt(MENU_QUESTION)
+  init();
+
+}
+
+init();
+
+
+
+
+
+
+
+
+
+/*
+const posts = [
+  { title: "post one", body: "this is post one"},
+  { title: "post two", body: "this is post two"}
+]
+
+function getPosts() {
+  setTimeout(() => {
+    let output = '';
+    posts.forEach((post) => {
+      output += `${post.title}\n`
+    });
+    console.log(output);
+  }, 1000);
+}
+
+function createPost(post) {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      posts.push(post);
+
+      const error = false;
+
+      if(!error) {
+        resolve();
+      } else {
+        reject ('Error: something went wrong');
+      }
+    },2000)
+  }) 
+}
+
+function creaatePost2(post) {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      posts.push(post);
+      const error = false; 
+      if (!error) {
+        resolve();
+      } else {
+        reject ('Error: something wrong in createpost2');
+      }
+    }, 4000)
+  })
+}
+
+//getPosts();
+
+// createPost({title: 'Post Three', body: "This is post three"})
+//   .then(getPosts)
+//   .catch(err => console.log(err));
+
+async function init() {
+  await creaatePost2({title: 'post four', body: 'this is post four'});
+  await createPost({title: 'Post Three', body: "This is post three"});
+  getPosts();
+}
+
+init();
+
+
+
+
+
+// const promise1 = new Promise((resolve, reject) => 
+//   setTimeout(resolve, 4000, 'promise1'));
+// const promise2 = new Promise((resolve, reject) => 
+//   setTimeout(resolve, 1, 'promise2'));
+// const promise3 = new Promise((resolve, reject) => 
+//   setTimeout(resolve, 1, 'promise3'));
+
+// Promise.all([promise1, promise2, promise3]).
+// then((values)=> {console.log(values)});
+
+
+
+/*
+
 const EMPLOYEE_QUESTION = [
   {
     type: 'input', 
@@ -51,7 +146,7 @@ const db = mysql.createConnection(
 );
 
 
-let queryDB = function(queryString) {
+let queryDB = (queryString) => {
   return new Promise ((resolve, reject) => {
     db.query(queryString, function (err, results) {
       resolve(results);
@@ -59,6 +154,14 @@ let queryDB = function(queryString) {
     })
   })
 }
+
+async function init() {
+  
+}
+
+
+
+
 
 function determineNextAction(option) {
   switch(option.userSelection) {
@@ -188,7 +291,7 @@ function determineNextAction(option) {
                     console.log(resp)
                     askQuestions();
                   })
-                //} else {
+                //todo select users from the db then display to select the manager!
                 }).catch((err) => {
                   queryDB(`INSERT INTO employee (first_name, last_name, role_id, manager_id)
                   VALUES ("${firstName}" , "${lastName}", ${role_id}, NULL ) `)
@@ -239,6 +342,57 @@ function determineNextAction(option) {
       // })
       
       break; 
+    case 'Update and Employee Role':
+      //show all the employees
+      queryDB(`SELECT concat (first_name, ' ', last_name) as Employee FROM employee`)
+      .then((rows) => {
+        let employees = [];
+        rows.forEach(row => {
+          employees.push(row.Employee);
+        });
+        console.log(employees);
+        queryDB('select title from roles')
+        .then((rows) => {
+          let roles = [];
+
+          rows.forEach(row => {
+            roles.push(row.title);
+          })
+          console.log(roles);
+
+          let dept_question = [ 
+            {
+              type: 'list', 
+              message: 'which employee?',
+              name: 'employee', 
+              choices: employees
+            }, 
+            {
+              type: 'list', 
+              message: 'new role', 
+              name: 'role',
+              choices: roles
+            }
+          ];
+          inquirer
+          .prompt(dept_question)
+          .then((response) => {
+            console.log(response);
+
+            askQuestions();
+          })
+        })
+        //askQuestions();
+      })
+      .catch((err) => {
+        console.log(err);
+      })
+      //once the user selects an employee, show all the roles
+
+      //once the user selects a role, submit that to the db
+
+      break;
+
     default: 
       console.log("invalid option!!");
       process.exit();
@@ -251,6 +405,8 @@ function askQuestions() {
   .prompt(MENU_QUESTION)
   .then((response) => {
     //console.log(response);
+    //console.log(response);
+
     determineNextAction(response);
   })
 }
@@ -259,11 +415,14 @@ askQuestions();
 
 
 /* WIP
- WHEN I choose to add an employee
-THEN I am prompted to enter the employee’s first name, last name, role, and manager, and that employee is added to the database
+ WHEN I choose to update an employee role
+THEN I am prompted to select an employee to update and their new role and this information is updated in the database 
 */
 
 /*DONE
+WHEN I choose to add an employee
+THEN I am prompted to enter the employee’s first name, last name, role, and manager, and that employee is added to the database
+
  WHEN I choose to add a role
 THEN I am prompted to enter the name, salary, and department for the role and that role is added to the database
 
@@ -290,8 +449,6 @@ THEN I am presented with the following options: view all departments, view all r
 
 
 
-WHEN I choose to add an employee
-THEN I am prompted to enter the employee’s first name, last name, role, and manager, and that employee is added to the database
-WHEN I choose to update an employee role
-THEN I am prompted to select an employee to update and their new role and this information is updated in the database 
+
+
 */
